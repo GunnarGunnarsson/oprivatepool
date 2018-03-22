@@ -1,0 +1,10 @@
+# Just to keep the empty directory. Please place a settings.cfg file here with your Google API credentials, with the
+# structure:
+#
+#   [Credentials]
+#   key = ????
+#   static_map_key = ????
+#
+# DO NOT VERSION CONTROL YOUR CREDENTIALS
+
+settings.cfg
