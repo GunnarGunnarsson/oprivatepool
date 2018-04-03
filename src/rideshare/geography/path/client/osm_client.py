@@ -38,8 +38,16 @@ class OSMClient(object):
     RAW_DATA_DIRECTORY = 'raw_data'
     MAPDATA_FILENAME = '%s/current_map.osm' % RAW_DATA_DIRECTORY
 
-    PROFILE_LOCATION = '/opt/routino-bin/profiles.xml'
-    TRANSLATIONS_LOCATION = '/opt/routino-bin/translations.xml'
+    # G
+    ROUTINO_BIN = '/home/gunnar/Documents/routino-3.2/web/bin/'
+    # PROFILE_LOCATION = '/opt/routino-bin/profiles.xml'
+    # G
+    PROFILE_LOCATION = '/home/gunnar/Documents/routino-3.2/web/data/profiles.xml'
+    # G
+    # TRANSLATIONS_LOCATION = '/opt/routino-bin/translations.xml'
+    TRANSLATIONS_LOCATION = '/home/gunnar/Documents/routino-3.2/web/data/translations.xml'
+    # G
+    TAGGING_LOCATION = '/home/gunnar/Documents/routino-3.2/web/data/tagging.xml'
 
     @property
     def MAPDATA_FILENAME_WILDCARD(self):
@@ -55,7 +63,8 @@ class OSMClient(object):
     def __init__(self):
         super(OSMClient, self).__init__()
         # self.geocoder = Nominatim()
-        self.geocoder = GoogleV3()
+        # G
+        self.geocoder = GoogleV3(api_key="AIzaSyD07ZVAgUgSQzkY5AFLztsRMUwVFx-LNBY")
 
     def geocode(self, place):
         max_request_frequence = 0.1
@@ -80,12 +89,10 @@ class OSMClient(object):
         """
         :type request: rideshare.geography.path.client.osm_request.OSMMapAreaRequest
         """
-
         new_data = False
 
         for box in request.boxes:
             map_url = request.make_url(*box)
-
             if self.is_cached(map_url):
                 continue
             print "Downloading map at %s..." % map_url
@@ -94,7 +101,10 @@ class OSMClient(object):
             if new_data:
                 time.sleep(60)
 
-            response = open_stream(map_url)
+            # G
+            # response = open_stream(map_url)
+            response = open_stream(map_url, 20)
+
             match = re.search('runtime error: (.*)', response.content)
             if match:
                 raise OSMConnectivityError("Error downloading map data: %s" % (match.group(1)))
@@ -103,7 +113,6 @@ class OSMClient(object):
             save_file(file_name, response.iter_content(1024), filter_overpass_for_routino)
             print "Done!"
             new_data = True
-
         return new_data
 
     def make_area_request(self, loc1, loc2):
@@ -130,8 +139,9 @@ class OSMClient(object):
 
         print "Creating database..."
 
-        command = 'planesplitter --dir="%s" --tagging=/opt/routino-bin/tagging.xml %s' % (
-            data_folder, osm_file_path)
+        # G
+        command = '%s/planetsplitter --dir="%s" --tagging=%s %s' % (
+            self.ROUTINO_BIN, data_folder, self.TAGGING_LOCATION, osm_file_path)
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate()
 
@@ -140,6 +150,7 @@ class OSMClient(object):
 
         print "Done!"
 
+    # Generate the intermediate points between the two coordinates, representing a path
     def find_route(self, origin, destination):
         """
         :param origin: start of route
@@ -160,9 +171,12 @@ class OSMClient(object):
             self.create_database()
 
         coords = '--lon1=%s --lat1=%s --lon2=%s --lat2=%s' % (origin.lng, origin.lat, destination.lng, destination.lat)
-        command = 'router --shortest --output-stdout --output-text-all --profiles=%s --translations=%s --dir=%s %s' % (
-            self.PROFILE_LOCATION, self.TRANSLATIONS_LOCATION, data_folder, coords
+        # G
+        # Initialize the command for Routino, inputing the endpoints coordinates
+        command = '%s/router --shortest --output-stdout --output-text-all --profiles=%s --translations=%s --dir=%s %s' % (
+            self.ROUTINO_BIN, self.PROFILE_LOCATION, self.TRANSLATIONS_LOCATION, data_folder, coords
         )
+        # Run the command
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate()
 

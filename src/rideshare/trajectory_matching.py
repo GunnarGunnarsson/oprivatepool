@@ -15,7 +15,9 @@ BOB_ROLE = 0
 ALICE_ROLE = 1
 
 
-def set_match_share(path1, path2, threshold):
+# G
+#def set_match_share(path1, path2, threshold):
+def set_match_share(path1, path2):
     stash = [{}, {}]
 
     def run(role):
@@ -34,21 +36,39 @@ def set_match_share(path1, path2, threshold):
 
     if stash[ALICE_ROLE]['out']:
         lines = stash[ALICE_ROLE]['out'].split('\n')
-        if 'Computation finished. Found' in lines[0]:
-            result = [GeoPoint(*line.split(',')) for line in lines[1:-1]]
-            return result
+        # G
+        #if 'Computation finished. Found' in lines[0]:
+        #    result = [GeoPoint(*line.split(',')) for line in lines[1:-1]]
+        #    return result
+        for idx, l in enumerate(lines):
+            if 'Computation finished. Found' in l:
+                # G
+                result = []
+                for line in lines[idx+1:-1]:
+                    origin = GeoPoint(line.split(',')[0],line.split(',')[1])
+                    if origin not in result:
+                        result.append(origin)
+                    destination = GeoPoint(line.split(',')[2],line.split(',')[3])
+                    if destination not in result:
+                        result.append(destination)
+                return result
 
     raise ValueError('Unknown issue')
 
 
-def setup_psi(path1, path2):
+def setup_psi(path1, path2, threshold):
     def __setup_psi_file(role, trajectory):
         abs_data_path = make_absolute_path_to('psi_input/')
         if not os.path.isdir(abs_data_path):
             os.makedirs(abs_data_path)
         with open(make_data_file_path(role), 'wb') as f:
-            for point in trajectory:
-                f.write('%s\n' % point)
+            # G
+            #for point in trajectory:
+            for idx, point in enumerate(trajectory):
+                try:
+                    f.write('%s,%s\n' % (point,trajectory[idx+threshold]))
+                except:
+                    break
 
     __setup_psi_file(ALICE_ROLE, path1)
     __setup_psi_file(BOB_ROLE, path2)
@@ -56,7 +76,11 @@ def setup_psi(path1, path2):
 
 def run_psi(role, stash):
     data_file = make_data_file_path(role)
-    binary = '/opt/psi/demo'
+    # G
+    # https://github.com/encryptogroup/PSI
+    #binary = '/opt/psi/demo'
+    # Switched to bark
+    binary = '/home/gunnar/Documents/BaRK-OPRF/Release/bOPRFmain.exe'
     protocol = 3
     out, err = _run_psi(binary, data_file, protocol, role)
     # out.output("%s finished with file %s, got \n\tout:%s\n\terr:%s" % (role, data_file, out, err)
@@ -71,8 +95,18 @@ def make_data_file_path(role):
 
 
 def _run_psi(binary, data_file, protocol, role):
-    command = '%s -r %s -p %s -f %s' % (
-        binary, role, protocol, data_file
+    # G
+    # Switched to fit bark
+    #command = '%s -r %s -p %s -f %s' % (
+    #    binary, role, protocol, data_file
+    #)
+    # In bark the roles are switched
+    #if role == 0:
+    #    bark_role = 1
+    #else:
+    #    bark_role = 0
+    command = '%s -s %s %s' % (
+        binary, role, data_file
     )
     proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -165,14 +199,19 @@ def statistics(numbers):
 
 
 def main():
-    data_folders = glob.glob(make_absolute_path_to('out/osm/*'))
+    # G
+    #data_folders = glob.glob(make_absolute_path_to('out/osm/*'))
+    data_folders = glob.glob(make_absolute_path_to('damn_out/osm/*'))
+    #data_folders = glob.glob(make_absolute_path_to('out/paper/*'))
 
     for data_folder in data_folders:
         print "\n\n== For %s" % data_folder
         out = Output()
 
         t = time.time()
-        threshold = 0.1
+        # G
+        #threshold = 0.1
+        threshold = 1
         alice_path, bob_path = load_csv_data(data_folder)
         out.output(
             "\nLoaded data in %s s. Path lengths are %s and %s" % (time.time() - t, len(alice_path), len(bob_path)))
@@ -185,15 +224,27 @@ def main():
         out.output("Section length for Bob  num='%s', %s" % (len(bob_path), (stats_format % bob_stats)))
         # print out.all_output
         # continue
-        setup_psi(alice_path, bob_path)
+
+        ##
+        # Call new PSI function
+        ##
+
+        # G
+        # setup_psi(alice_path, bob_path)
+        setup_psi(alice_path, bob_path, threshold)
 
         iterations = 25
         times = []
         for i in range(iterations):
             t = time.time()
-            set_intersection = set_match_share(alice_path, bob_path, threshold)
+            # G
+            # set_intersection = set_match_share(alice_path, bob_path, threshold)
+            set_intersection = set_match_share(alice_path, bob_path)
             times.append(time.time() - t)
 
+        # G
+        # fraction_shared = float(len(set_intersection)) / min(len(alice_path), len(bob_path))
+        # Fix this
         fraction_shared = float(len(set_intersection)) / min(len(alice_path), len(bob_path))
         # set_match = fraction_shared >= threshold
         set_match = len(set_intersection) > 0

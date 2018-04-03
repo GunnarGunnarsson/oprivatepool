@@ -19,3 +19,4 @@
 python -m rideshare.create_data "Doktor Forselius Backe 17, 413 26 Göteborg" "Lindholmen, Göteborg" "Maskingränd 2, 412 58 Göteborg" "Lindholmen, Göteborg" --out "damn_out/osm/small" --engine "OSM"
 # python -m rideshare.create_data "Partille Station" "Mora, Dalarna" "Göteborg SKF" "Vemdalen, Härjedalen" --out "out/osm/hybrid" --engine "OSM"
 # python -m rideshare.create_data "Gothenburg Central Station" "Vara Station" "Jönköping Station" "Uppsala Central Station" --out "out/osm/extras" --engine "OSM"
+# python -m rideshare.create_data "40.7167816162109 -74.0121612548828" "40.7158622741699 -73.9619903564453" "40.8139610290527 -73.9522018432617" "40.8078117370606 -73.9456481933594" --out "test_out/osm/coords" --engine "OSM"

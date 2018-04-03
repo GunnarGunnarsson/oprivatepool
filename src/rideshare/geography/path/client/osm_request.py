@@ -54,6 +54,10 @@ class OSMMapAreaRequest(object):
     def make_url(self, minlat=None, minlng=None, maxlat=None, maxlng=None):
         base_api_url = 'http://overpass-api.de/api'
         map_url = '%s/map?bbox=%s,%s,%s,%s' % (base_api_url, minlng, minlat, maxlng, maxlat)
+        # G
+        # Adding memory requirements
+        memory_req = 750000000
+        map_url = '%s&=maxsize=%s' % (map_url, memory_req)
         return map_url
 
 

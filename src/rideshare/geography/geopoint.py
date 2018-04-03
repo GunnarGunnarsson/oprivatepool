@@ -9,7 +9,9 @@ from rideshare.geography.projection_transformer import ProjectionTransformer
 class GeoPoint(Point):
     """ Simple point representation, which can calculate the distance to another point """
 
+    # G
     def __init__(self, lat, lng, projection_transformer=ProjectionTransformer()):
+    #def __init__(self, lat_0, lng_0, lat_1, lng_1, projection_transformer=ProjectionTransformer()):
         """
         :param projection_transformer:
         :param lat: latitude

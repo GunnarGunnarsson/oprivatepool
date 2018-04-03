@@ -25,7 +25,9 @@ def main():
     f.close()
 
     for taxi_link in all_taxi_links:
-        if 'green_tripdata' not in taxi_link:
+        # G
+        #if 'green_tripdata' not in taxi_link:
+        if 'green_tripdata_2015' not in taxi_link:
             continue
 
         source_name = taxi_link.split('/')[-1]
@@ -43,6 +45,7 @@ def main():
         source_file = make_absolute_path_to('%s/%s' % (data_folder, source_name))
 
         if os.path.isfile(source_file):
+            # The CSV file is already downloaded
             print_flushed("[CACHED] %s" % taxi_link)
         else:
             print_flushed("[DOWNLOAD] %s" % taxi_link)
@@ -60,6 +63,7 @@ def main():
             target_file.write("[")
 
             rows = []
+            # Read the CSV file
             print_flushed("[READ] %s" % taxi_link)
             with open(source_file, 'rb') as csv_file:
                 next(csv_file, None)  # skip the headers
@@ -71,6 +75,7 @@ def main():
 
             count = 0
             print_flushed('[ROUTE] %s' % taxi_link)
+            # Look through the first 1000 rows of data in the CSV file
             while count < target and rows:
                 current_percentage = 100.0 * count / target
 
@@ -89,18 +94,18 @@ def main():
                     original_lines = open(source_file).readlines()
                     err_line_number = '?'  # original_lines.index(",".join(row))
                     print_flushed("Could not handle line #%s. %s" % (err_line_number, e))
-
                 if '0' not in [trip.pickup_latitude, trip.pickup_longitude, trip.dropoff_latitude,
                                trip.dropoff_longitude]:
                     dropoff = (trip.dropoff_latitude, trip.dropoff_longitude)
                     pickup = (trip.pickup_latitude, trip.pickup_longitude)
                     try:
                         # print "Searching for path for [%s -> %s]\n\t%s" % (pickup, dropoff, row)
+                        # Create points from the given coordinates
                         pickup_point = GeoPoint(*pickup)
                         dropoff_point = GeoPoint(*dropoff)
                         if pickup_point.distance_to(dropoff_point) < 2000:
                             continue
-
+                        # Generate the path between the two points
                         path = engine.map_path.path_between(pickup_point, dropoff_point)
                         points = engine.get_points(path)
                         if len(points) < 10:

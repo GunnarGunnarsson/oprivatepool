@@ -11,10 +11,12 @@ class OSMMapPath(MapPath):
     def geocode(self, place):
         return self.client.geocode(place)
 
+    # Make sure the two points are in the right format before computing the path
     def path_between(self, origin_search, destination_search):
         origin = origin_search if isinstance(origin_search, GeoPoint) else self.client.geocode(origin_search)
         destination = destination_search if isinstance(destination_search, GeoPoint) else self.client.geocode(
             destination_search)
+        # Generate the intermediate points between the two coordinates, representing a path
         return self.client.find_route(origin, destination)
 
 

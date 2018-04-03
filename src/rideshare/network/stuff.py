@@ -19,7 +19,7 @@ def open_stream(url, retries=1):
         retries -= 1
         if not response.ok:
             time.sleep(2)
-            # print "Didn't work: %s" % response.content
+            print "Didn't work: %s" % response.content
 
     return response
 
