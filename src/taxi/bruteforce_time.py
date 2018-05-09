@@ -82,7 +82,6 @@ def count_bruteforce(paths, r, threshold, time_max, debug=False):
                     # if the two points are closer than the current r and their times are close enough together
                     current_r = dynamic_r(r, len(passenger_path), i)
                     if driver_pt.distance_to(passenger_pt) < current_r and abs(driver_pt.time - passenger_pt.time) < time_max:
-                        print driver_pt.distance_to(passenger_pt), current_r
                         driver_start = j
                         passenger_start = i
                         break
