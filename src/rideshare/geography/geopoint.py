@@ -25,7 +25,7 @@ class GeoPoint(Point):
         self.lat = float(lat)
         self.lng = float(lng)
         try:
-            regex = re.compile("^\s+[0-9]{10}$")
+            regex = re.compile("^\s*[0-9]{10}$")
             if regex.search(t):
                 self.time = int(t)
             else:
