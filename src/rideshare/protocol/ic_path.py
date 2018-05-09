@@ -47,7 +47,9 @@ class ICPath(object):
 
     def create_proximity_result(self, array_scramble, point):
         scramble = ArrayScramble(self.r, point, self.keys, self.scheme)
+        # Constructs the message Alice sends to Bob
         a1 = array_scramble.create_request()
+        # Calculate the distance using the unpacked al list
         b1 = scramble.create_response(*a1)
         return b1
 
@@ -101,6 +103,10 @@ class ICPath(object):
         result = req.reveal(product)
         return result
 
+    """
+    Description:
+        Transform point (coordinate) to cartesian coordinates with a given position value.
+    """
     def scale(self, point):
         projection_transformer = IntProjectionTransformer(scale=1.0 / self.precision)
         return GeoPoint(point.lat, point.lng, projection_transformer=projection_transformer)

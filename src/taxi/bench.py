@@ -20,19 +20,9 @@ def evaler(i):
 def main():
     rs = [500, 1000, 2000]
     ts = [0.20, 0.50, 0.80]
-    finished = [
-        '/home/gunnar/Documents/rideshare/taxi-data-10k/complete/routes_green_tripdata_2015-06.json',
-        '/home/gunnar/Documents/rideshare/taxi-data-10k/complete/routes_green_tripdata_2015-02.json',
-        '/home/gunnar/Documents/rideshare/taxi-data-10k/complete/routes_green_tripdata_2015-10.json',
-        '/home/gunnar/Documents/rideshare/taxi-data-10k/complete/routes_green_tripdata_2015-04.json',
-        '/home/gunnar/Documents/rideshare/taxi-data-10k/complete/routes_green_tripdata_2015-08.json'
-    ]
     data_folder = make_absolute_path_to(config['data_folder'])
     print config['data_filename_pattern'] % data_folder
     for file_name in glob.glob(config['data_filename_pattern'] % data_folder):
-        print "\n%s" % file_name
-        if file_name in finished:
-            continue
         sys.stdout.flush()
         with open(file_name, 'r') as f:
             paths = GeoPoint.json_load(f)
@@ -51,7 +41,6 @@ def main():
 
                     print "T=%.6f" % (time.time() - tt)
                     print "\n".join(["%s: %s" % (a, b) for a, b in zip(["BF", "EP", "IS"], mapped)])
-        break
 
 if __name__ == '__main__':
     main()

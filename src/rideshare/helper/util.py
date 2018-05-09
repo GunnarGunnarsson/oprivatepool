@@ -29,7 +29,7 @@ def load_csv_data(folder_or_file):
         spamreader = csv.reader(csvfile, delimiter='|')
         for row in spamreader:
             # print '|'.join(row)
-            paths.append([GeoPoint(*p.split(',')) for p in row])
+            paths.append([GeoPoint(p.split(',')[0],p.split(',')[1],t=p.split(',')[2]) for p in row])
     return paths
 
 

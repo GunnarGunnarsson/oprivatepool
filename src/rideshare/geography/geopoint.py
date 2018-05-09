@@ -1,5 +1,8 @@
 import json
 import math
+import time
+import re
+from calendar import timegm
 
 from hos_protocol.point import Point
 
@@ -10,7 +13,7 @@ class GeoPoint(Point):
     """ Simple point representation, which can calculate the distance to another point """
 
     # G
-    def __init__(self, lat, lng, projection_transformer=ProjectionTransformer()):
+    def __init__(self, lat, lng, projection_transformer=ProjectionTransformer(), t='-1'):
     #def __init__(self, lat_0, lng_0, lat_1, lng_1, projection_transformer=ProjectionTransformer()):
         """
         :param projection_transformer:
@@ -21,6 +24,15 @@ class GeoPoint(Point):
         self.equatorial_radius = 6378137.0
         self.lat = float(lat)
         self.lng = float(lng)
+        try:
+            regex = re.compile("^\s+[0-9]{10}$")
+            if regex.search(t):
+                self.time = int(t)
+            else:
+                self.time = timegm(time.strptime(t, "%Y-%m-%d %H:%M:%S"))
+            #print 'skipping time'
+        except:
+            self.time = -1
 
         self.x, self.y = projection_transformer.from_gps(lat, lng)
 
@@ -87,7 +99,7 @@ class GeoPoint(Point):
     def json_load(inp):
         def parse_geopoint(dct):
             if 'lat' in dct:
-                return GeoPoint(dct['lat'], dct['lng'])
+                return GeoPoint(dct['lat'], dct['lng'], t=str(dct['time']))
             return dct
 
         if isinstance(inp, str):
@@ -100,7 +112,7 @@ class GeoPoint(Point):
         class PointEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, GeoPoint):
-                    return {'lat': obj.lat, 'lng': obj.lng}
+                    return {'lat': obj.lat, 'lng': obj.lng, 'time': obj.time}
                 return json.JSONEncoder.default(self, obj)
 
         return json.dumps(o, cls=PointEncoder)

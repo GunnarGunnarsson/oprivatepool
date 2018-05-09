@@ -55,8 +55,9 @@ def set_match_share(path1, path2):
 
     raise ValueError('Unknown issue')
 
-
-def setup_psi(path1, path2, threshold):
+# Set up the data so it can be interpreted by the PSI protocol
+def setup_psi(path1, path2, threshold, time_max, dev_prec):
+    # TODO: Change threshold from fixed threshold to variable threshold
     def __setup_psi_file(role, trajectory):
         abs_data_path = make_absolute_path_to('psi_input/')
         if not os.path.isdir(abs_data_path):
@@ -65,10 +66,20 @@ def setup_psi(path1, path2, threshold):
             # G
             #for point in trajectory:
             for idx, point in enumerate(trajectory):
-                try:
-                    f.write('%s,%s\n' % (point,trajectory[idx+threshold]))
-                except:
-                    break
+                times = []
+                estimated_time = (point.time - (point.time % dev_prec))
+                times.append(estimated_time)
+                for i, val in enumerate(range(estimated_time, estimated_time + time_max, dev_prec)):
+                    if i == 0:
+                        continue
+                    times.append(estimated_time + (i*dev_prec))
+                    times.append(estimated_time - (i*dev_prec))
+                for time in times:
+                    try:
+                        #print '%s,%s,%s\n' % (point,trajectory[idx+int(math.ceil(threshold*len(trajectory)))], time)
+                        f.write('%s,%s,%s\n' % (point,trajectory[idx+int(math.ceil(threshold*len(trajectory)))], time))
+                    except:
+                        break
 
     __setup_psi_file(ALICE_ROLE, path1)
     __setup_psi_file(BOB_ROLE, path2)
@@ -110,15 +121,27 @@ def _run_psi(binary, data_file, protocol, role):
     )
     proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
+    print '---'
+    print out
+    print '---'
+    print err
+    print '---'
+    while True:
+        continue
     try:
         proc.kill()
     except OSError:
         pass
     return out, err
 
-
+"""
+Description: 
+    Input two paths, checks if endpoints match then returns true and path1.   
+"""
 def endpoint_match_share(path1, path2):
+    # Radius (km or m?)
     r = 4
+    # Precision (m)
     p = int(20 * 1000 / r)
     ic_path = ICPath(r=r, precision=p)
 
@@ -209,9 +232,9 @@ def main():
         out = Output()
 
         t = time.time()
-        # G
-        #threshold = 0.1
-        threshold = 1
+
+        # Statistical information
+        threshold = 0.1
         alice_path, bob_path = load_csv_data(data_folder)
         out.output(
             "\nLoaded data in %s s. Path lengths are %s and %s" % (time.time() - t, len(alice_path), len(bob_path)))
@@ -225,39 +248,30 @@ def main():
         # print out.all_output
         # continue
 
-        ##
-        # Call new PSI function
-        ##
-
+        # Intersection based matching
+        # Temporal deviance
+        time_max = 900
+        # Precision in temporal deviance
+        dev_prec = 60
         # G
-        # setup_psi(alice_path, bob_path)
-        setup_psi(alice_path, bob_path, threshold)
+        # setup_psi(alice_path, bob_path, threshold)
+        setup_psi(alice_path, bob_path, threshold, time_max, dev_prec)
+        set_intersection = set_match_share(alice_path, bob_path)
+        times.append(time.time() - t)
 
-        iterations = 25
-        times = []
-        for i in range(iterations):
-            t = time.time()
-            # G
-            # set_intersection = set_match_share(alice_path, bob_path, threshold)
-            set_intersection = set_match_share(alice_path, bob_path)
-            times.append(time.time() - t)
-
-        # G
-        # fraction_shared = float(len(set_intersection)) / min(len(alice_path), len(bob_path))
-        # Fix this
         fraction_shared = float(len(set_intersection)) / min(len(alice_path), len(bob_path))
-        # set_match = fraction_shared >= threshold
         set_match = len(set_intersection) > 0
 
         out.output(
             "Calculated set intersection [%s] (%.2f%% matches)" % (stats_format % statistics(times), 100 * fraction_shared))
 
+        # Endpoint based matching
         times = []
-        for i in range(iterations):
-            t = time.time()
-            endpoint_match, start_end_overlap = endpoint_match_share(alice_path, bob_path)
-            times.append(time.time() - t)
+        t = time.time()
+        endpoint_match, start_end_overlap = endpoint_match_share(alice_path, bob_path)
+        times.append(time.time() - t)
 
+        # Output data
         out.output("Calculated endpoint match [%s]" % (stats_format % statistics(times)))
         out.output("\nSet match: %s" % set_match)
         out.output("Endpoint match %s" % endpoint_match)
@@ -265,8 +279,9 @@ def main():
         if not set_match:
             set_intersection = []
 
-        plot_for(alice_path, bob_path, get(set_intersection, 0), get(set_intersection, -1),
-                 data_folder, 'intersection')
+        # Print image from intersection based matching
+        plot_for(alice_path, bob_path, get(set_intersection, 0), get(set_intersection, -1), data_folder, 'intersection')
+        # Print image from end-point matching
         plot_for(alice_path, bob_path, get(start_end_overlap, 0), get(start_end_overlap, -1), data_folder, 'start_end')
 
         with open(create_path("%s/paths" % data_folder, 'bench.txt'), 'wb') as f:
@@ -288,7 +303,7 @@ def plot_for(alice_path, bob_path, first_point, last_point, data_folder, name):
         while last_point != path[i]:
             intersection.append(path[i])
             i += 1
-
+        # Appends the last coordinate to the list
         intersection.append(path[i])
 
     plot_path(alice_path, bob_path, intersection, save_as=create_path("%s/paths" % data_folder, '%s.png' % name),

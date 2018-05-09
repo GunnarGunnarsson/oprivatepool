@@ -30,6 +30,7 @@ def main():
     else:
         raise ValueError('no valid point engine specified')
 
+    # Generate intermediate points between the given endpoints
     find_paths(args.alice_destination.decode('utf-8'), args.alice_origin.decode('utf-8'),
                args.bob_destination.decode('utf-8'), args.bob_origin.decode('utf-8'),
                args.out, engine)

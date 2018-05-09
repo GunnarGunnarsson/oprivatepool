@@ -14,19 +14,18 @@ class OSMMapPath(MapPath):
     # Make sure the two points are in the right format before computing the path
     def path_between(self, origin_search, destination_search):
         origin = origin_search if isinstance(origin_search, GeoPoint) else self.client.geocode(origin_search)
-        destination = destination_search if isinstance(destination_search, GeoPoint) else self.client.geocode(
-            destination_search)
+        destination = destination_search if isinstance(destination_search, GeoPoint) else self.client.geocode(destination_search)
         # Generate the intermediate points between the two coordinates, representing a path
         return self.client.find_route(origin, destination)
 
 
 class OSMPathEngine(PathEngine):
-    def get_points(self, result):
+    def get_points(self, result, start_time, end_time):
         """
         :type result: geography.path.client.osm_client.OSMPath
         :return:
         """
-        return [GeoPoint(leg.latitude, leg.longitude) for leg in result.legs]
+        return [GeoPoint(leg.latitude, leg.longitude, t=str(start_time + int(((float(end_time) - float(start_time)) / float(len(result.legs) - 1)) * float(idx)))) for idx, leg in enumerate(result.legs)]
 
     @property
     def map_path(self):

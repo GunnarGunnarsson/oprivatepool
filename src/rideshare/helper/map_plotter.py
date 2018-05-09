@@ -17,6 +17,7 @@ def plot_path(*paths, **kwargs):
     :type path: list[GeoPoint]
     :type save_as: str
     """
+
     save_as = kwargs.get('save_as')
     path_names = kwargs.get('path_names')
 
@@ -72,23 +73,25 @@ def plot_path_geojson(paths, save_as, path_names=None, position='auto'):
     :type paths: list[list[tuple()]]
     :type save_as: str
     """
-
     reductions = 0
 
     token = 'pk.eyJ1IjoienV0IiwiYSI6ImNpc2l0d2M3ODAwMXEybnBreDlraG40b2sifQ.6_Rny7TalpgR2fwbGA6OEw'
 
     l = 5000
 
+    # The limit of the request size(?)
     while l >= 4096:
+        # Characteristics of the path being drawn
         features = []
 
+        # Iterate for each entity's path
         for i in range(len(paths)):
             path = paths[i]
-
             if len(path) == 0:
                 continue
             max_points = max(len(path) - reductions, 10)
             print "%s: %s" % (i, max_points)
+            # Generate a line between the endpoints, made up of max_points evenly spaced points
             line_string = LineString(reduce_path([(x, y) for (y, x) in path], max_points))
             color = gen_hex_colour_code(None if not path_names else path_names[i])
             feature = Feature(geometry=line_string, properties={
@@ -99,7 +102,6 @@ def plot_path_geojson(paths, save_as, path_names=None, position='auto'):
             features.append(feature)
 
             properties = make_marker_props(None if not path_names else path_names[i])
-
             start_marker = Feature(geometry=Point((path[0][1], path[0][0])), properties=properties)
             features.append(start_marker)
 
@@ -109,6 +111,7 @@ def plot_path_geojson(paths, save_as, path_names=None, position='auto'):
             end_marker = Feature(geometry=Point((path[-1][1], path[-1][0])), properties=properties)
             features.append(end_marker)
 
+        # Tidy up the JSON string
         geojson_string = urllib.quote(geojson.dumps(FeatureCollection(features)).replace(' ', ''))
 
         url = 'https://api.mapbox.com/v4/mapbox.streets/geojson(%s)/%s/%sx%s.png?access_token=%s' % (
@@ -119,7 +122,9 @@ def plot_path_geojson(paths, save_as, path_names=None, position='auto'):
         print l
         reductions += 1
 
+    # Make the request
     response = open_stream(url)
+    # Save the file
     save_file(save_as, response.content)
 
 

@@ -11,12 +11,14 @@ from taxi.trip import GreenNewTaxiTrip, GreenTaxiTrip
 
 
 def main():
+    # Where to put the map data
     data_folder = 'taxi-data-10k'
 
     abs_data_path = make_absolute_path_to(data_folder)
     if not os.path.isdir(abs_data_path):
         os.makedirs(abs_data_path)
 
+    # A list of links to map data
     all_taxi_links_url = 'https://raw.githubusercontent.com/toddwschneider/nyc-taxi-data/master/raw_data_urls.txt'
     str = "[SETUP] fetching urls from %s" % all_taxi_links_url
     print_flushed(str)
@@ -96,21 +98,22 @@ def main():
                     print_flushed("Could not handle line #%s. %s" % (err_line_number, e))
                 if '0' not in [trip.pickup_latitude, trip.pickup_longitude, trip.dropoff_latitude,
                                trip.dropoff_longitude]:
-                    dropoff = (trip.dropoff_latitude, trip.dropoff_longitude)
-                    pickup = (trip.pickup_latitude, trip.pickup_longitude)
+                    dropoff = (trip.dropoff_latitude, trip.dropoff_longitude, trip.lpep_dropoff_datetime)
+                    pickup = (trip.pickup_latitude, trip.pickup_longitude, trip.lpep_pickup_datetime)
                     try:
                         # print "Searching for path for [%s -> %s]\n\t%s" % (pickup, dropoff, row)
                         # Create points from the given coordinates
-                        pickup_point = GeoPoint(*pickup)
-                        dropoff_point = GeoPoint(*dropoff)
+                        pickup_point = GeoPoint(pickup[0],pickup[1],t=pickup[2])
+                        dropoff_point = GeoPoint(dropoff[0],dropoff[1],t=dropoff[2])
                         if pickup_point.distance_to(dropoff_point) < 2000:
                             continue
                         # Generate the path between the two points
                         path = engine.map_path.path_between(pickup_point, dropoff_point)
-                        points = engine.get_points(path)
+                        points = engine.get_points(path, pickup_point.time, dropoff_point.time)
                         if len(points) < 10:
                             continue
-
+                        # G
+                        # json_dump = GeoPoint.json_dump(points)
                         json_dump = GeoPoint.json_dump(points)
                         if count > 0:
                             target_file.write(",")

@@ -39,7 +39,7 @@ class OSMClient(object):
     MAPDATA_FILENAME = '%s/current_map.osm' % RAW_DATA_DIRECTORY
 
     # G
-    ROUTINO_BIN = '/home/gunnar/Documents/routino-3.2/web/bin/'
+    ROUTINO_BIN = '/home/gunnar/Documents/routino-3.2/web/bin'
     # PROFILE_LOCATION = '/opt/routino-bin/profiles.xml'
     # G
     PROFILE_LOCATION = '/home/gunnar/Documents/routino-3.2/web/data/profiles.xml'
@@ -140,10 +140,17 @@ class OSMClient(object):
         print "Creating database..."
 
         # G
-        command = '%s/planetsplitter --dir="%s" --tagging=%s %s' % (
+        command = '%s/planetsplitter --dir="%s" --tagging="%s" %s' % (
             self.ROUTINO_BIN, data_folder, self.TAGGING_LOCATION, osm_file_path)
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate()
+        if err:
+            print 'planetsplitter failed'
+            print err
+        else:
+            print 'planetsplitter ran successfully'
+        while True:
+            continue
 
         if err:
             raise ValueError("Couldn't create database from OSM data: %s" % err)
@@ -158,7 +165,6 @@ class OSMClient(object):
         :type origin: GeoPoint
         :type destination: GeoPoint
         """
-
         try:
             if self.execute_area_request(OSMMapAreaRequest(origin, destination)):
                 self.create_database()
@@ -176,6 +182,7 @@ class OSMClient(object):
         command = '%s/router --shortest --output-stdout --output-text-all --profiles=%s --translations=%s --dir=%s %s' % (
             self.ROUTINO_BIN, self.PROFILE_LOCATION, self.TRANSLATIONS_LOCATION, data_folder, coords
         )
+
         # Run the command
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate()
