@@ -24,21 +24,23 @@ def main():
     #rs = [500, 1000, 2000]
     rs = [2000]
     # thresholds
-    ts = [0.20, 0.50, 0.80]
+    ts = [0.50, 0.80]
     # temporal deviance (distance)
     ds = [1800, 2700, 3600]
 
     finished = [
-        '/home/gunnar/Documents/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-06.json',
-        '/home/gunnar/Documents/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-02.json',
-        '/home/gunnar/Documents/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-04.json',
-        '/home/gunnar/Documents/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-12.json',
-        '/home/gunnar/Documents/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-10.json',
+        '/home/thesis/Thesis/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-02.json',
+        '/home/thesis/Thesis/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-04.json',
+        '/home/thesis/Thesis/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-06.json',
+        '/home/thesis/Thesis/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-12.json',
+        '/home/thesis/Thesis/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-08.json'
     ]
 
     data_folder = make_absolute_path_to(config['data_folder'])
     print config['data_filename_pattern'] % data_folder
     for file_name in glob.glob(config['data_filename_pattern'] % data_folder):
+        if file_name in finished:
+            continue
         print file_name
         if file_name in finished:
             continue
