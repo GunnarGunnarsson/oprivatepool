@@ -17,6 +17,7 @@ ALICE_ROLE = 1
 
 # G
 #def set_match_share(path1, path2, threshold):
+# Returns all unique spatial coordinates
 def set_match_share(path1, path2):
     stash = [{}, {}]
 
@@ -121,13 +122,6 @@ def _run_psi(binary, data_file, protocol, role):
     )
     proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
-    print '---'
-    print out
-    print '---'
-    print err
-    print '---'
-    while True:
-        continue
     try:
         proc.kill()
     except OSError:
@@ -138,10 +132,21 @@ def _run_psi(binary, data_file, protocol, role):
 Description: 
     Input two paths, checks if endpoints match then returns true and path1.   
 """
-def endpoint_match_share(path1, path2):
+def endpoint_time_match_share(path1, path2, time_max, dev_prec):
     # Radius (km or m?)
     r = 4
     # Precision (m)
+    p = int(20 * 1000 / r)
+    ic_path = ICPath(r=r, precision=p)
+
+    match = ic_path.endpoint_time_match(path1[0], path2[0], path1[-1], path2[-1], time_max, dev_prec)
+
+    overlap = path1 if match else []
+
+    return match, overlap
+
+def endpoint_match_share(path1, path2):
+    r = 4
     p = int(20 * 1000 / r)
     ic_path = ICPath(r=r, precision=p)
 
@@ -256,6 +261,9 @@ def main():
         # G
         # setup_psi(alice_path, bob_path, threshold)
         setup_psi(alice_path, bob_path, threshold, time_max, dev_prec)
+
+        times = []
+        t = time.time()
         set_intersection = set_match_share(alice_path, bob_path)
         times.append(time.time() - t)
 
@@ -265,16 +273,32 @@ def main():
         out.output(
             "Calculated set intersection [%s] (%.2f%% matches)" % (stats_format % statistics(times), 100 * fraction_shared))
 
-        # Endpoint based matching
+        # Simple endpoint based matching
+        print 'Without time:'
+        iterations = 25
         times = []
-        t = time.time()
-        endpoint_match, start_end_overlap = endpoint_match_share(alice_path, bob_path)
-        times.append(time.time() - t)
+        for i in range(iterations):
+            t = time.time()
+            endpoint_match, start_end_overlap = endpoint_match_share(alice_path, bob_path)
+            times.append(time.time() - t)
 
         # Output data
-        out.output("Calculated endpoint match [%s]" % (stats_format % statistics(times)))
+        out.output("Calculated simple endpoint match [%s]" % (stats_format % statistics(times)))
+
+        # Endpoint based matching with time
+        print 'With time:'
+        iterations = 25
+        times = []
+        for i in range(iterations):
+            t = time.time()
+            endpoint_match_time, start_end_overlap_time = endpoint_time_match_share(alice_path, bob_path, time_max, dev_prec)
+            times.append(time.time() - t)
+
+        # Output data
+        out.output("Calculated endpoint match with time [%s]" % (stats_format % statistics(times)))
         out.output("\nSet match: %s" % set_match)
-        out.output("Endpoint match %s" % endpoint_match)
+        out.output("Simple endpoint match: %s" % endpoint_match)
+        out.output("Endpoint match with time: %s" % endpoint_match_time)
 
         if not set_match:
             set_intersection = []
