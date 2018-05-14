@@ -42,6 +42,8 @@ def main():
         if file_name in finished:
             continue
         print file_name
+        if file_name in finished:
+            continue
         sys.stdout.flush()
         with open(file_name, 'r') as f:
             paths = GeoPoint.json_load(f)
@@ -49,6 +51,8 @@ def main():
             for r in rs:
                 for t in ts:
                     for d in ds:
+                        #if file_name == '/home/gunnar/Documents/litepool/taxi-data-10k/complete/routes_green_tripdata_2015-10.json' and r == 1000 and d != 60:
+                            #continue
                         print " ::: [ r=%s, t=%.2f%%, d=%d ] ::: " % (r, t * 100, d/60)
                         sys.stdout.flush()
 

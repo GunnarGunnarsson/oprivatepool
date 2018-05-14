@@ -4,7 +4,7 @@ import time
 import re
 from calendar import timegm
 
-from hos_protocol.point import Point
+from hos_protocol_v2.point import Point
 
 from rideshare.geography.projection_transformer import ProjectionTransformer
 
