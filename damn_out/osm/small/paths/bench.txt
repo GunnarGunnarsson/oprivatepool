@@ -1,0 +1,11 @@
+
+Loaded data in 0.00501418113708 s. Path lengths are 220 and 207
+Section length for Alice num='220', tot='11873.9642915', avg='54.2190150296', std devation='74.2314327904'
+Section length for Bob  num='207', tot='11174.1764665', avg='54.2435750803', std devation='76.9066430745'
+Calculated set intersection [tot='0.99178314209', avg='0.99178314209', std devation='0.0'] (61.35% matches)
+Calculated simple endpoint match [tot='10.2699608803', avg='0.410798435211', std devation='0.0334194814411']
+Calculated endpoint match with time [tot='38.4189624786', avg='1.53675849915', std devation='0.047488100107']
+
+Set match: True
+Simple endpoint match: True
+Endpoint match with time: True
